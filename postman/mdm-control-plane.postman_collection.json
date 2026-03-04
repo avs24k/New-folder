@@ -1,0 +1,106 @@
+﻿{
+  "info": {
+    "name": "MDM Control Plane",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Local testing collection for lawful MDM command and telemetry endpoints."
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "dev-token-1" },
+    { "key": "agent_id", "value": "android-agent-001" },
+    { "key": "command_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/health"
+      }
+    },
+    {
+      "name": "Enqueue Command",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body && body.id) {",
+              "  pm.collectionVariables.set('command_id', body.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"payload\": {\n    \"name\": \"health.ping\",\n    \"args\": {}\n  },\n  \"envelope\": {\n    \"ts\": 1700000000,\n    \"sig\": \"replace-with-real-signature\"\n  }\n}"
+        },
+        "url": "{{base_url}}/agents/{{agent_id}}/commands:enqueue"
+      }
+    },
+    {
+      "name": "Pull Commands",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body && body.commands && body.commands.length > 0) {",
+              "  pm.collectionVariables.set('command_id', body.commands[0].id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{base_url}}/agents/{{agent_id}}/commands:pull"
+      }
+    },
+    {
+      "name": "Complete Command",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"success\",\n  \"result\": {\n    \"ok\": true\n  }\n}"
+        },
+        "url": "{{base_url}}/agents/{{agent_id}}/commands/{{command_id}}:complete"
+      }
+    },
+    {
+      "name": "Ingest Telemetry",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"events\": [\n    {\n      \"ts\": 1700000000,\n      \"event_type\": \"agent.started\",\n      \"data\": {\n        \"version\": \"0.1.0\"\n      }\n    }\n  ]\n}"
+        },
+        "url": "{{base_url}}/agents/{{agent_id}}/telemetry:ingest"
+      }
+    }
+  ]
+}

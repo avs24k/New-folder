@@ -1,0 +1,15 @@
+﻿version: "3.9"
+
+services:
+  mdm-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mdm-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MDM_DB_PATH=/app/data/mdm.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
