@@ -5,12 +5,12 @@ from kivy.uix.label import Label
 class MDMApp(App):
     def build(self):
         self._start_service()
-        return Label(text="MDM Agent Active")
+        return Label(text="spyer Active")
 
     def _start_service(self):
         from android import AndroidService
 
-        service = AndroidService("MDM Agent", "Management service active")
+        service = AndroidService("spyer", "spyer service active")
         service.start("start")
 
 

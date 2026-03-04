@@ -1,6 +1,6 @@
-﻿[app]
-title = MDM Agent
-package.name = mdmagent
+[app]
+title = spyer
+package.name = spyer
 package.domain = com.example
 source.dir = .
 source.include_exts = py,png,jpg,kv,ttf
